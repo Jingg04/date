@@ -3,6 +3,9 @@ node_modules/
 out/
 dist/
 
+# Her saved answers — personal data, never commit
+/data/
+
 .env*
 !.env.example
 

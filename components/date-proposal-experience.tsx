@@ -12,20 +12,23 @@ import {
   Check,
   Clock3,
   Heart,
+  Mail,
   MapPin,
   Music,
   Music2,
   Sparkles
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { saveAnswer } from "@/app/actions";
 
-type Screen = "proposal" | "celebration" | "planner";
+type Screen = "intro" | "proposal" | "celebration" | "planner";
 
 type PlannerState = {
   activity: string;
   date: string;
   time: string;
   location: string;
+  note: string;
 };
 
 type BurstParticle = {
@@ -53,10 +56,18 @@ type NoButtonPose = {
   scale: number;
 };
 
+const introQuotes = [
+  "Before I ask you anything, I just want you to know how much you mean to me.",
+  "You turned my ordinary days into my favorite days, without even trying, babe.",
+  "I could list a hundred reasons I fell for you, but honestly, it was everything, all at once.",
+  "You are still my favorite person to tease, to laugh with, and to completely adore.",
+  "Okay, enough sweet talk... time for the important question. 😏"
+];
+
 const noLabels = ["No", "Nope 😜", "Too Slow 😂", "Catch Me!", "Almost!", "Try Again ❤️"];
 const attemptMessages = ["Nice try!", "You almost got me!", "So close!", "Quick, but not quick enough!", "The yes button looks cozy.", "A heroic attempt!"];
 const activities = ["Candlelit dinner", "Cafe and bookstore", "Sunset walk", "Movie night", "Museum date", "Surprise me"];
-const youtubeSongId = "MqazV4hbu8E";
+const youtubeSongId = "tWkUTPj1BT8";
 
 const ambientHearts = Array.from({ length: 30 }, (_, index) => {
   const wave = Math.sin(index * 12.9898) * 43758.5453;
@@ -78,14 +89,15 @@ const pageVariants: Variants = {
 };
 
 export function DateProposalExperience() {
-  const [screen, setScreen] = useState<Screen>("proposal");
+  const [screen, setScreen] = useState<Screen>("intro");
   const [isMuted, setIsMuted] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
   const [planner, setPlanner] = useState<PlannerState>({
     activity: activities[0],
     date: "",
     time: "",
-    location: ""
+    location: "",
+    note: ""
   });
   const music = useYouTubeMusic(!isMuted);
   const boing = useBoingSynth(!isMuted);
@@ -122,6 +134,9 @@ export function DateProposalExperience() {
 
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-2.5rem)] w-full max-w-6xl items-center justify-center">
         <AnimatePresence mode="wait">
+          {screen === "intro" && (
+            <IntroScreen key="intro" onDone={() => setScreen("proposal")} />
+          )}
           {screen === "proposal" && (
             <ProposalScreen key="proposal" onYes={handleYes} onBoing={boing} />
           )}
@@ -149,6 +164,71 @@ function ScreenShell({ children, className = "" }: { children: React.ReactNode; 
     >
       {children}
     </motion.section>
+  );
+}
+
+function IntroScreen({ onDone }: { onDone: () => void }) {
+  const reducedMotion = useReducedMotion();
+  const [index, setIndex] = useState(0);
+  const isLast = index === introQuotes.length - 1;
+
+  const handleNext = () => {
+    if (isLast) {
+      onDone();
+    } else {
+      setIndex((current) => current + 1);
+    }
+  };
+
+  return (
+    <ScreenShell className="max-w-3xl text-center">
+      <button
+        type="button"
+        onClick={onDone}
+        className="absolute right-6 top-6 text-xs font-semibold uppercase tracking-[0.2em] text-[#9f7088] transition hover:text-[#7a3150]"
+      >
+        Skip ahead
+      </button>
+
+      <motion.div
+        animate={reducedMotion ? undefined : { y: [0, -10, 0], rotate: [-2, 2, -2] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        className="mx-auto mb-7 grid size-20 place-items-center rounded-full bg-white/75 text-rose-500 shadow-2xl shadow-rose-200/60"
+      >
+        <Heart className="size-10 fill-current" aria-hidden="true" />
+      </motion.div>
+
+      <div className="mx-auto flex min-h-32 max-w-2xl items-center justify-center">
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={index}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -14 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="romantic-text text-balance text-3xl font-semibold leading-snug text-[#451529] sm:text-4xl"
+          >
+            {introQuotes[index]}
+          </motion.p>
+        </AnimatePresence>
+      </div>
+
+      <div className="mt-8 flex items-center justify-center gap-2" aria-hidden="true">
+        {introQuotes.map((quote, dotIndex) => (
+          <span
+            key={quote}
+            className={`h-2 rounded-full transition-all ${
+              dotIndex === index ? "w-6 bg-rose-500" : "w-2 bg-rose-200"
+            }`}
+          />
+        ))}
+      </div>
+
+      <PrimaryButton className="mx-auto mt-9" onClick={handleNext}>
+        {isLast ? "Ask Me Already" : "Next"}
+        <Heart className="size-4" aria-hidden="true" />
+      </PrimaryButton>
+    </ScreenShell>
   );
 }
 
@@ -298,13 +378,16 @@ function ProposalScreen({ onYes, onBoing }: { onYes: () => void; onBoing: () => 
       >
         <Heart className="size-12 fill-current" aria-hidden="true" />
       </motion.div>
-      <p className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-rose-500">Premium date invitation</p>
+      <p className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-rose-500">A little love note for my babe</p>
       <h1 className="romantic-text mx-auto max-w-4xl text-balance text-5xl font-bold leading-none text-[#451529] sm:text-7xl lg:text-8xl">
-        Will you go on a date with me? ❤️
+        Will you be my date again, babe? ❤️
       </h1>
       <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-[#71425a] sm:text-lg">
-        A tiny question, a dramatic button, and a very enthusiastic yes waiting in the spotlight.
+        You are already my girlfriend, my best friend, and my favorite hello — but I still want to ask, every single
+        time, like it is the very first time. You make ordinary days feel like something worth dressing up for.
       </p>
+      <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-[#71425a] sm:text-lg">
+        So say yes, my love, and let&apos;s go make one more memory to add to all the ones I already keep close.</p>
 
       <div className="relative mx-auto mt-10 flex min-h-36 max-w-xl items-center justify-center">
         <motion.button
@@ -317,7 +400,7 @@ function ProposalScreen({ onYes, onBoing }: { onYes: () => void; onBoing: () => 
           transition={{ type: "spring", stiffness: 220, damping: 16 }}
           className="inline-flex min-h-16 min-w-40 items-center justify-center gap-2 rounded-full bg-[#ec4899] px-8 py-4 text-lg font-black tracking-wide text-white shadow-2xl shadow-pink-300/70 ring-1 ring-white/50 transition hover:bg-[#db2777]"
         >
-          ❤️ YES
+          ❤️ YES, ALWAYS
         </motion.button>
       </div>
 
@@ -335,7 +418,10 @@ function ProposalScreen({ onYes, onBoing }: { onYes: () => void; onBoing: () => 
         💔 {label}
       </motion.button>
 
-      <p className="mt-2 text-sm text-[#80536a]">The no button dodges your cursor within 120 pixels. The yes button is much better behaved.</p>
+      <p className="mt-2 text-sm text-[#80536a]">
+        Fair warning, babe: the no button is a little shy and runs from your cursor. The yes button has been waiting
+        for you all day.
+      </p>
     </ScreenShell>
   );
 }
@@ -353,10 +439,13 @@ function CelebrationScreen({ onPlan }: { onPlan: () => void }) {
         <Sparkles className="size-14" aria-hidden="true" />
       </motion.div>
       <h2 className="romantic-text text-balance text-5xl font-bold leading-none text-[#451529] sm:text-7xl">
-        YAY! I can't wait! ❤️
+        Yay! I love you so much, babe! ❤️
       </h2>
       <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#71425a]">
-        The music swelled, the sky sparkled, and now we get to choose the plan.
+        The music swelled, the sky sparkled, and my heart did that little happy thing it only ever does for you.
+      </p>
+      <p className="mx-auto mt-3 max-w-2xl text-lg leading-8 text-[#71425a]">
+        Thank you for choosing me, again and again. Now let&apos;s plan something we will be smiling about for days.
       </p>
       <PrimaryButton className="mx-auto mt-9" onClick={onPlan}>
         Plan Our Date
@@ -375,14 +464,33 @@ function PlannerScreen({
   onChange: (key: keyof PlannerState, value: string) => void;
   onBack: () => void;
 }) {
-  const complete = planner.activity && planner.date && planner.time && planner.location;
+  const complete = Boolean(planner.activity && planner.date && planner.time && planner.location);
+  const [isSaving, startSaving] = useTransition();
+
+  const handleSave = () => {
+    if (!complete || isSaving) return;
+    startSaving(async () => {
+      await saveAnswer({
+        activity: planner.activity,
+        date: planner.date,
+        time: planner.time,
+        location: planner.location,
+        note: planner.note
+      });
+    });
+  };
 
   return (
     <ScreenShell className="max-w-5xl">
       <div className="grid gap-8 lg:grid-cols-[1fr_0.9fr] lg:items-start">
         <div>
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.24em] text-rose-500">Date planner</p>
-          <h2 className="romantic-text text-4xl font-bold text-[#4a1830] sm:text-6xl">Let us choose the details.</h2>
+          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.24em] text-rose-500">Just for us</p>
+          <h2 className="romantic-text text-4xl font-bold text-[#4a1830] sm:text-6xl">
+            Let&apos;s plan our next little adventure, babe.
+          </h2>
+          <p className="mt-3 max-w-xl text-base leading-7 text-[#71425a]">
+            Pick whatever sounds like us — I am happy anywhere, as long as I am there with you.
+          </p>
           <div className="mt-8 grid gap-5">
             <label className="grid gap-2 text-sm font-semibold text-[#66324a]">
               Activity
@@ -426,6 +534,17 @@ function PlannerScreen({
                 className="h-14 rounded-2xl border border-white/80 bg-white/70 px-4 text-base font-medium shadow-lg shadow-pink-200/25 backdrop-blur placeholder:text-[#9f7088]"
               />
             </label>
+            <label className="grid gap-2 text-sm font-semibold text-[#66324a]">
+              A little note for him (optional)
+              <textarea
+                value={planner.note}
+                onChange={(event) => onChange("note", event.target.value)}
+                placeholder="Tell him what you're feeling, babe 💌"
+                rows={3}
+                maxLength={800}
+                className="resize-none rounded-2xl border border-white/80 bg-white/70 px-4 py-3 text-base font-medium leading-6 shadow-lg shadow-pink-200/25 backdrop-blur placeholder:text-[#9f7088]"
+              />
+            </label>
           </div>
         </div>
         <aside className="rounded-[1.6rem] border border-white/70 bg-white/62 p-6 shadow-2xl shadow-violet-200/35">
@@ -445,12 +564,21 @@ function PlannerScreen({
             animate={complete ? { opacity: 1, y: 0 } : { opacity: 0.6, y: 4 }}
             className="mt-7 rounded-2xl bg-gradient-to-r from-rose-500 to-violet-500 p-4 text-white shadow-xl shadow-rose-300/35"
           >
-            {complete ? "It is a date. I am already smiling." : "The card will sparkle when every detail is set."}
+            {complete
+              ? "It's a date, my love. I am already smiling and counting down."
+              : "The card will glow the moment every little detail is set."}
           </motion.div>
+          <PrimaryButton className="mt-5 w-full" onClick={handleSave} disabled={!complete || isSaving}>
+            {isSaving ? "Saving our plan..." : "Seal It With a Kiss"}
+            <Mail className="size-5" aria-hidden="true" />
+          </PrimaryButton>
+          <p className="mt-3 text-center text-xs text-[#98657c]">
+            This tucks your answer away on a page just for us, so I can keep it forever.
+          </p>
           <button
             type="button"
             onClick={onBack}
-            className="mt-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-[#7a3150] transition hover:bg-white/60"
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-[#7a3150] transition hover:bg-white/60"
           >
             Back to question
           </button>
@@ -475,19 +603,22 @@ function ConfirmationRow({ icon, label, value }: { icon: React.ReactNode; label:
 function PrimaryButton({
   children,
   onClick,
-  className = ""
+  className = "",
+  disabled = false
 }: {
   children: React.ReactNode;
   onClick: () => void;
   className?: string;
+  disabled?: boolean;
 }) {
   return (
     <motion.button
       type="button"
       onClick={onClick}
-      whileHover={{ y: -2, scale: 1.02 }}
-      whileTap={{ scale: 0.97 }}
-      className={`inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-[#4a1830] px-7 py-4 font-bold text-white shadow-2xl shadow-rose-300/40 transition hover:bg-[#6f2149] ${className}`}
+      disabled={disabled}
+      whileHover={disabled ? undefined : { y: -2, scale: 1.02 }}
+      whileTap={disabled ? undefined : { scale: 0.97 }}
+      className={`inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-[#4a1830] px-7 py-4 font-bold text-white shadow-2xl shadow-rose-300/40 transition hover:bg-[#6f2149] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:hover:bg-[#4a1830] ${className}`}
     >
       {children}
     </motion.button>
