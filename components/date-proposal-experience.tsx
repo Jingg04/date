@@ -855,6 +855,7 @@ type YouTubePlayer = {
   mute: () => void;
   unMute: () => void;
   setVolume: (volume: number) => void;
+  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
   destroy: () => void;
 };
 
@@ -874,6 +875,7 @@ function useYouTubeMusic(enabled: boolean) {
   const enabledRef = useRef(enabled);
   const readyRef = useRef(false);
   const pendingStartRef = useRef(false);
+  const hasSeekedRef = useRef(false);
   const volumeRef = useRef(18);
   const fadeTimerRef = useRef<number | null>(null);
   const swellTimerRef = useRef<number | null>(null);
@@ -909,6 +911,14 @@ function useYouTubeMusic(enabled: boolean) {
     [clearFade]
   );
 
+  const seekToStartOnce = useCallback(() => {
+    if (hasSeekedRef.current) return;
+    const player = playerRef.current;
+    if (!player) return;
+    hasSeekedRef.current = true;
+    player.seekTo(0, true);
+  }, []);
+
   const syncMute = useCallback(() => {
     const player = playerRef.current;
     if (!player || !readyRef.current) return;
@@ -939,7 +949,8 @@ function useYouTubeMusic(enabled: boolean) {
           modestbranding: 1,
           playlist: youtubeSongId,
           playsinline: 1,
-          rel: 0
+          rel: 0,
+          start: 0
         },
         events: {
           onReady: () => {
@@ -947,6 +958,7 @@ function useYouTubeMusic(enabled: boolean) {
             syncMute();
             if (pendingStartRef.current) {
               pendingStartRef.current = false;
+              seekToStartOnce();
               playerRef.current?.playVideo();
             }
           }
@@ -964,7 +976,7 @@ function useYouTubeMusic(enabled: boolean) {
       previousReady?.();
       createPlayer();
     };
-  }, [syncMute]);
+  }, [syncMute, seekToStartOnce]);
 
   useEffect(() => {
     enabledRef.current = enabled;
@@ -991,12 +1003,13 @@ function useYouTubeMusic(enabled: boolean) {
     if (!player || !readyRef.current) return;
 
     pendingStartRef.current = false;
+    seekToStartOnce();
     if (enabledRef.current) {
       player.unMute();
       fadeTo(22, 650);
     }
     player.playVideo();
-  }, [ensurePlayer, fadeTo]);
+  }, [ensurePlayer, fadeTo, seekToStartOnce]);
 
   const swell = useCallback(() => {
     start();
