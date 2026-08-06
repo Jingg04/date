@@ -113,6 +113,15 @@ export function DateProposalExperience() {
     setScreen("celebration");
   }, [music]);
 
+  // Browsers only allow audio playback after a real user gesture, so start the
+  // music on her very first tap anywhere on the page instead of waiting for "yes".
+  useEffect(() => {
+    if (isMuted) return;
+    const startOnFirstInteraction = () => music.start();
+    window.addEventListener("pointerdown", startOnFirstInteraction, { once: true });
+    return () => window.removeEventListener("pointerdown", startOnFirstInteraction);
+  }, [isMuted, music.start]);
+
   const handlePlannerChange = useCallback(
     (key: keyof PlannerState, value: string) => setPlanner((current) => ({ ...current, [key]: value })),
     []
