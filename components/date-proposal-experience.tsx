@@ -61,6 +61,9 @@ const introQuotes = [
   "You turned my ordinary days into my favorite days, without even trying, babe.",
   "I could list a hundred reasons I fell for you, but honestly, it was everything, all at once.",
   "You are still my favorite person to tease, to laugh with, and to completely adore.",
+  "I really, truly love you, babe — more than words could ever really say.",
+  "You're the last thing I think about before I fall asleep, and the first smile of my morning.",
+  "I don't know how I got this lucky, but I promise I will never take it for granted.",
   "Okay, enough sweet talk... time for the important question. 😏"
 ];
 
@@ -380,7 +383,7 @@ function ProposalScreen({ onYes, onBoing }: { onYes: () => void; onBoing: () => 
       </motion.div>
       <p className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-rose-500">A little love note for my babe</p>
       <h1 className="romantic-text mx-auto max-w-4xl text-balance text-5xl font-bold leading-none text-[#451529] sm:text-7xl lg:text-8xl">
-        Will you be my date again, babe? ❤️
+        Will you be my date, babe? ❤️
       </h1>
       <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-[#71425a] sm:text-lg">
         You are already my girlfriend, my best friend, and my favorite hello — but I still want to ask, every single
