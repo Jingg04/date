@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fff7fb;
+  --foreground: #351626;
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-display);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 15% 12%, rgba(255, 185, 218, 0.55), transparent 26rem),
+    radial-gradient(circle at 84% 8%, rgba(196, 181, 253, 0.46), transparent 27rem),
+    radial-gradient(circle at 72% 84%, rgba(251, 207, 232, 0.56), transparent 28rem),
+    linear-gradient(135deg, #fff8fb 0%, #ffe7f1 34%, #f2eaff 68%, #ffffff 100%);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(236, 72, 153, 0.5);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: rgba(244, 114, 182, 0.35);
+}
+
+.romantic-text {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+.glass-panel {
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.7), rgba(255, 240, 248, 0.45));
+  box-shadow:
+    0 24px 70px rgba(190, 24, 93, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(28px) saturate(145%);
+}
+
+.soft-ring {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.58),
+    0 18px 58px rgba(168, 85, 247, 0.14);
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  opacity: 0.62;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}
